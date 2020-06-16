@@ -131,7 +131,7 @@ extern const am_hal_gpio_pincfg_t       g_AM_BSP_GPIO_LED4;
 //  COM_UART_TX pin: This pin is the COM_UART transmit pin.
 //
 //*****************************************************************************
-#define AM_BSP_GPIO_COM_UART_TX         22
+#define AM_BSP_GPIO_COM_UART_TX         18
 extern const am_hal_gpio_pincfg_t       g_AM_BSP_GPIO_COM_UART_TX;
 
 //*****************************************************************************
@@ -139,7 +139,7 @@ extern const am_hal_gpio_pincfg_t       g_AM_BSP_GPIO_COM_UART_TX;
 //  COM_UART_RX pin: This pin is the COM_UART receive pin.
 //
 //*****************************************************************************
-#define AM_BSP_GPIO_COM_UART_RX         23
+#define AM_BSP_GPIO_COM_UART_RX         19
 extern const am_hal_gpio_pincfg_t       g_AM_BSP_GPIO_COM_UART_RX;
 
 //*****************************************************************************

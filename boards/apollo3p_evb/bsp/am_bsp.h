@@ -121,7 +121,7 @@ extern am_devices_led_t am_bsp_psLEDs[AM_BSP_NUM_LEDS];
 // AM_BSP_UART_PRINT_INST should correspond to COM_UART.
 //
 #define AM_BSP_UART_IOS_INST                0
-#define AM_BSP_UART_PRINT_INST              0
+#define AM_BSP_UART_PRINT_INST              1
 #define AM_BSP_UART_BOOTLOADER_INST         1
 
 //*****************************************************************************
