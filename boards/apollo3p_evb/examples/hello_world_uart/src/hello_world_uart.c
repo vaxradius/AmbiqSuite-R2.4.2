@@ -126,7 +126,7 @@ const am_hal_uart_config_t g_sUartConfig =
 //
 //*****************************************************************************
 void
-am_uart1_isr(void)
+am_uart_isr(void)
 {
     //
     // Service the FIFOs as necessary, and clear the interrupts.
@@ -210,7 +210,7 @@ main(void)
     //
     // Initialize the printf interface for UART output.
     //
-    CHECK_ERRORS(am_hal_uart_initialize(1, &phUART));
+    CHECK_ERRORS(am_hal_uart_initialize(0, &phUART));
     CHECK_ERRORS(am_hal_uart_power_control(phUART, AM_HAL_SYSCTRL_WAKE, false));
     CHECK_ERRORS(am_hal_uart_configure(phUART, &g_sUartConfig));
 
