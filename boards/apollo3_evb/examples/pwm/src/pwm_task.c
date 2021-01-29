@@ -80,6 +80,102 @@ TaskHandle_t pwm_task_handle;
 //*****************************************************************************
 EventGroupHandle_t xLedEventHandle;
 
+//*****************************************************************************
+//
+// Macros
+//
+//*****************************************************************************
+#define USE_GPIO    25
+#define USE_TIMER    5
+#define TIMER_SEG AM_HAL_CTIMER_TIMERA
+#define TIMER_INT AM_HAL_CTIMER_INT_TIMERA5C0
+
+#define BC_CLKSRC   "HFRC"
+#define PWM_CLK     AM_HAL_CTIMER_HFRC_12MHZ
+
+#define PERIOD  24
+uint32_t g_ui32Index = 0;
+
+
+void pwm_ctimer_handler(void)
+{
+    //uint32_t ui32OnTime;
+
+
+    //ui32OnTime = g_pui8Brightness[g_ui32Index];
+
+    if ( !(g_ui32Index & 1) )
+    {
+        // This is a CMPR0 interrupt.
+        // The CMPR2 interrupt will come later, but while we're here go ahead
+        // and update the CMPR0 period.
+        //
+        //am_hal_ctimer_period_set(USE_TIMER, TIMER_SEG,
+        //                         PERIOD, ui32OnTime);
+    }
+    else
+    {
+        //
+        // This is a CMPR2 interrupt.  Update the CMPR2 period.
+        //
+        //am_hal_ctimer_aux_period_set(USE_TIMER, TIMER_SEG,
+        //                             PERIOD, ui32OnTime);
+    }
+
+    //
+    // Set up the LED duty cycle for the next pulse.
+    //
+    g_ui32Index = (g_ui32Index + 1) % PERIOD;
+
+}
+
+static void pwm_ctimer_init(void)
+{
+
+
+    //
+    // Configure the output pin.
+    //
+    am_hal_ctimer_output_config(USE_TIMER,
+                                TIMER_SEG,
+                                USE_GPIO,
+                                AM_HAL_CTIMER_OUTPUT_NORMAL,
+                                AM_HAL_GPIO_PIN_DRIVESTRENGTH_12MA);
+
+    //
+    // Configure a timer to drive the LED.
+    //
+    am_hal_ctimer_config_single(USE_TIMER,               // ui32TimerNumber
+                                TIMER_SEG,           // ui32TimerSegment
+                                (AM_HAL_CTIMER_FN_PWM_REPEAT    |   // ui32ConfigVal
+                                 PWM_CLK                        |
+                                 AM_HAL_CTIMER_INT_ENABLE) );
+
+    //
+    // Set up initial timer periods.
+    //
+    am_hal_ctimer_period_set(USE_TIMER,
+                             TIMER_SEG, (PERIOD-1), PERIOD/2);
+    am_hal_ctimer_aux_period_set(USE_TIMER,
+                                 TIMER_SEG, (PERIOD-1), PERIOD/2);
+
+	am_hal_ctimer_int_register(TIMER_INT,pwm_ctimer_handler);
+
+    //
+    // Enable interrupts for the Timer we are using on this board.
+    //
+    am_hal_ctimer_int_enable(TIMER_INT);
+    NVIC_EnableIRQ(CTIMER_IRQn);
+
+    //
+    // Start the timer.
+    //
+    am_hal_ctimer_start(USE_TIMER, TIMER_SEG);
+
+
+
+}
+
 
 //*****************************************************************************
 //
@@ -213,7 +309,7 @@ button2_handler(void)
 void
 PwmTaskSetup(void)
 {
-    am_util_debug_printf("LEDTask: setup\r\n");
+    am_util_debug_printf("PWMTask: setup\r\n");
 
     //
     // Create an event handle for our wake-up events.
@@ -224,6 +320,8 @@ PwmTaskSetup(void)
     // Make sure we actually allocated space for the events we need.
     //
     while (xLedEventHandle == NULL);
+
+	pwm_ctimer_init();
 
     // Initialize the LEDs
     am_devices_led_array_init(am_bsp_psLEDs, AM_BSP_NUM_LEDS);
