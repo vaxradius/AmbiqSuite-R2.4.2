@@ -94,44 +94,22 @@ EventGroupHandle_t xLedEventHandle;
 #define PWM_CLK     AM_HAL_CTIMER_HFRC_12MHZ
 
 #define PERIOD  24
-uint32_t g_ui32Index = 0;
-
+uint32_t g_ui32OnTime = (PERIOD/2);
 
 void pwm_ctimer_handler(void)
 {
-    //uint32_t ui32OnTime;
 
+	am_hal_gpio_output_toggle(8);
 
-    //ui32OnTime = g_pui8Brightness[g_ui32Index];
-
-    if ( !(g_ui32Index & 1) )
-    {
-        // This is a CMPR0 interrupt.
-        // The CMPR2 interrupt will come later, but while we're here go ahead
-        // and update the CMPR0 period.
-        //
-        //am_hal_ctimer_period_set(USE_TIMER, TIMER_SEG,
-        //                         PERIOD, ui32OnTime);
-    }
-    else
-    {
-        //
-        // This is a CMPR2 interrupt.  Update the CMPR2 period.
-        //
-        //am_hal_ctimer_aux_period_set(USE_TIMER, TIMER_SEG,
-        //                             PERIOD, ui32OnTime);
-    }
-
-    //
-    // Set up the LED duty cycle for the next pulse.
-    //
-    g_ui32Index = (g_ui32Index + 1) % PERIOD;
+    am_hal_ctimer_period_set(USE_TIMER, TIMER_SEG,
+                                (PERIOD-1), g_ui32OnTime);
 
 }
 
 static void pwm_ctimer_init(void)
 {
-
+	am_hal_gpio_state_write(8, AM_HAL_GPIO_OUTPUT_SET);
+	am_hal_gpio_pinconfig(8, g_AM_HAL_GPIO_OUTPUT);
 
     //
     // Configure the output pin.
@@ -155,17 +133,17 @@ static void pwm_ctimer_init(void)
     // Set up initial timer periods.
     //
     am_hal_ctimer_period_set(USE_TIMER,
-                             TIMER_SEG, (PERIOD-1), PERIOD/2);
-    am_hal_ctimer_aux_period_set(USE_TIMER,
-                                 TIMER_SEG, (PERIOD-1), PERIOD/2);
+                             TIMER_SEG, (PERIOD-1), g_ui32OnTime);
 
 	am_hal_ctimer_int_register(TIMER_INT,pwm_ctimer_handler);
+
+	//NVIC_SetPriority(CTIMER_IRQn, 7);
 
     //
     // Enable interrupts for the Timer we are using on this board.
     //
-    am_hal_ctimer_int_enable(TIMER_INT);
-    NVIC_EnableIRQ(CTIMER_IRQn);
+    //am_hal_ctimer_int_enable(TIMER_INT);
+    //NVIC_EnableIRQ(CTIMER_IRQn);
 
     //
     // Start the timer.
@@ -390,15 +368,20 @@ PwmTask(void *pvParameters)
             if (bitSet & (1 << 0))
             {
                 am_devices_led_toggle(am_bsp_psLEDs, 0);
+				g_ui32OnTime = (PERIOD/2);
             }
             if (bitSet & (1 << 1))
             {
                 am_devices_led_toggle(am_bsp_psLEDs, 1);
+				g_ui32OnTime = (PERIOD/4);
             }
             if (bitSet & (1 << 2))
             {
                 am_devices_led_toggle(am_bsp_psLEDs, 2);
+				g_ui32OnTime = (PERIOD/8);
             }
+			am_hal_ctimer_period_set(USE_TIMER,
+                             TIMER_SEG, (PERIOD-1), g_ui32OnTime);
         }
     }
 }
